@@ -1,8 +1,12 @@
 const app = ( function () {
+  const WS_ADDRESS = 'ws://localhost:8080/';
   const WIDTH = window.innerWidth;
   const HEIGHT = window.innerHeight;
-  const canvas = document.getElementById( 'collab_canvas' );
-  const ctx = canvas.getContext( '2d' );
+  const GRID_COLOR = 'rgb(206, 206, 206)';
+  const collabCanvas = document.getElementById( 'collab_canvas' );
+  const bgCanvas = document.getElementById( 'bg_canvas' );
+  const collabCtx = collabCanvas.getContext( '2d' );
+  const bgCtx = bgCanvas.getContext( '2d' );
   let socket = null;
   const mouseStatus = {
     down: false,
@@ -24,13 +28,29 @@ const app = ( function () {
     }
   };
 
+  const drawGrid = ( context ) => {
+    const canvasContext = context;
+    for ( let x = 0.5; x < WIDTH; x += 25 ) {
+      context.moveTo( x, 0 );
+      context.lineTo( x, HEIGHT );
+    }
+    for ( let y = 0.5; y < HEIGHT; y += 25 ) {
+      context.moveTo( 0, y );
+      context.lineTo( WIDTH, y );
+    }
+    canvasContext.strokeStyle = GRID_COLOR;
+    canvasContext.stroke();
+  };
+
   const setup = () => {
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
-    canvas.style.border = '1px solid black';
-    socket = new WebSocket( 'ws://localhost:8080/' );
+    collabCanvas.width = WIDTH;
+    collabCanvas.height = HEIGHT;
+    bgCanvas.width = WIDTH;
+    bgCanvas.height = HEIGHT;
+    drawGrid( bgCtx );
+    socket = new WebSocket( WS_ADDRESS );
     socket.onmessage = ( msg ) => {
-      drawLine( JSON.parse( msg.data ), ctx );
+      drawLine( JSON.parse( msg.data ), collabCtx );
     };
   };
 
@@ -42,7 +62,7 @@ const app = ( function () {
   const getViewportHeight = () => HEIGHT;
 
   const addListeners = () => {
-    canvas.addEventListener( 'mousemove', ( e ) => {
+    collabCanvas.addEventListener( 'mousemove', ( e ) => {
       if ( mouseStatus.down ) {
         const normalizedX = e.clientX / WIDTH;
         const normalizedY = e.clientY / HEIGHT;
@@ -52,11 +72,11 @@ const app = ( function () {
     } );
 
 
-    canvas.addEventListener( 'mousedown', ( ) => {
+    collabCanvas.addEventListener( 'mousedown', ( ) => {
       mouseStatus.down = true;
     } );
 
-    canvas.addEventListener( 'mouseup', ( ) => {
+    collabCanvas.addEventListener( 'mouseup', ( ) => {
       mouseStatus.down = false;
       points = [];
     } );
