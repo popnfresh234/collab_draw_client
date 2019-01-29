@@ -11,21 +11,28 @@ const app = ( function () {
   const mouseStatus = {
     down: false,
   };
-  let points = [];
 
   const drawLine = ( pointsArray, context ) => {
-    if ( pointsArray.length > 1 ) {
-      context.beginPath();
-      context.moveTo(
-        pointsArray[pointsArray.length - 2].normalizedX * WIDTH,
-        pointsArray[pointsArray.length - 2].normalizedY * HEIGHT,
-      );
-      context.lineTo(
-        pointsArray[pointsArray.length - 1].normalizedX * WIDTH,
-        pointsArray[pointsArray.length - 1].normalizedY * HEIGHT,
-      );
-      context.stroke();
+    // for ( let i = 0; i < pointsArray.length - 1; i += 1 ) {
+    //   context.moveTo(
+    //     pointsArray[i].normalizedX * WIDTH,
+    //     pointsArray[i].normalizedY * HEIGHT,
+    //   );
+    //   context.lineTo(
+    //     pointsArray[i + 1].normalizedX * WIDTH,
+    //     pointsArray[i + 1].normalizedY * HEIGHT,
+    //   );
+    // }
+    // context.stroke();
+
+    context.moveTo( pointsArray[0].normalizedX * WIDTH, pointsArray[0].normalizedY * HEIGHT );
+    for ( let i = 1; i < pointsArray.length - 2; i += 1 ) {
+      const xc = ( ( pointsArray[i].normalizedX * WIDTH ) + ( pointsArray[i + 1].normalizedX * WIDTH ) ) / 2;
+      const yc = ( ( pointsArray[i].normalizedY * HEIGHT ) + ( pointsArray[i + 1].normalizedY * HEIGHT ) ) / 2;
+      context.quadraticCurveTo( pointsArray[i].normalizedX * WIDTH, pointsArray[i].normalizedY * HEIGHT, xc, yc );
     }
+    context.lineWidth = 5;
+    context.stroke();
   };
 
   const drawGrid = ( context ) => {
@@ -66,8 +73,7 @@ const app = ( function () {
       if ( mouseStatus.down ) {
         const normalizedX = e.clientX / WIDTH;
         const normalizedY = e.clientY / HEIGHT;
-        points.push( { normalizedX, normalizedY } );
-        sendData( JSON.stringify( points ) );
+        sendData( JSON.stringify( { normalizedX, normalizedY } ) );
       }
     } );
 
@@ -78,7 +84,7 @@ const app = ( function () {
 
     collabCanvas.addEventListener( 'mouseup', ( ) => {
       mouseStatus.down = false;
-      points = [];
+      sendData( JSON.stringify( { completed: true } ) );
     } );
   };
 
