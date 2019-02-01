@@ -4,35 +4,31 @@ const app = ( function () {
   const HEIGHT = window.innerHeight;
   const GRID_COLOR = 'rgb(206, 206, 206)';
   const collabCanvas = document.getElementById( 'collab_canvas' );
-  const bgCanvas = document.getElementById( 'bg_canvas' );
   const collabCtx = collabCanvas.getContext( '2d' );
-  const bgCtx = bgCanvas.getContext( '2d' );
   let socket = null;
   const mouseStatus = {
     down: false,
   };
 
   const drawLine = ( pointsArray, context ) => {
-    // for ( let i = 0; i < pointsArray.length - 1; i += 1 ) {
-    //   context.moveTo(
-    //     pointsArray[i].normalizedX * WIDTH,
-    //     pointsArray[i].normalizedY * HEIGHT,
-    //   );
-    //   context.lineTo(
-    //     pointsArray[i + 1].normalizedX * WIDTH,
-    //     pointsArray[i + 1].normalizedY * HEIGHT,
-    //   );
-    // }
-    // context.stroke();
-
-    context.moveTo( pointsArray[0].normalizedX * WIDTH, pointsArray[0].normalizedY * HEIGHT );
-    for ( let i = 1; i < pointsArray.length - 2; i += 1 ) {
-      const xc = ( ( pointsArray[i].normalizedX * WIDTH ) + ( pointsArray[i + 1].normalizedX * WIDTH ) ) / 2;
-      const yc = ( ( pointsArray[i].normalizedY * HEIGHT ) + ( pointsArray[i + 1].normalizedY * HEIGHT ) ) / 2;
-      context.quadraticCurveTo( pointsArray[i].normalizedX * WIDTH, pointsArray[i].normalizedY * HEIGHT, xc, yc );
+    const ctx = context;
+    ctx.beginPath();
+    ctx.lineWidth = pointsArray[0].lineWidth;
+    ctx.strokeStyle = pointsArray[0].strokeStyle;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.moveTo(
+      pointsArray[0].normalizedX * WIDTH,
+      pointsArray[0].normalizedY * HEIGHT,
+    );
+    for ( let i = 0; i < pointsArray.length - 1; i += 1 ) {
+      ctx.lineTo(
+        pointsArray[i + 1].normalizedX * WIDTH,
+        pointsArray[i + 1].normalizedY * HEIGHT,
+      );
     }
-    context.lineWidth = 5;
-    context.stroke();
+    ctx.stroke();
+    ctx.closePath();
   };
 
   const drawGrid = ( context ) => {
@@ -52,12 +48,15 @@ const app = ( function () {
   const setup = () => {
     collabCanvas.width = WIDTH;
     collabCanvas.height = HEIGHT;
-    bgCanvas.width = WIDTH;
-    bgCanvas.height = HEIGHT;
-    drawGrid( bgCtx );
     socket = new WebSocket( WS_ADDRESS );
     socket.onmessage = ( msg ) => {
-      drawLine( JSON.parse( msg.data ), collabCtx );
+      const dataMsg = JSON.parse( msg.data );
+      const msgLookup = {
+        line: () => drawLine( dataMsg.data, collabCtx ),
+        grid: () => drawGrid( collabCtx ),
+      };
+      const fn = msgLookup[dataMsg.type];
+      if ( fn ) fn();
     };
   };
 
@@ -73,7 +72,9 @@ const app = ( function () {
       if ( mouseStatus.down ) {
         const normalizedX = e.clientX / WIDTH;
         const normalizedY = e.clientY / HEIGHT;
-        sendData( JSON.stringify( { normalizedX, normalizedY } ) );
+        sendData( JSON.stringify( {
+          normalizedX, normalizedY, lineWidth: 10, strokeStyle: 'red',
+        } ) );
       }
     } );
 
