@@ -4,6 +4,7 @@ const app = ( function () {
   const HEIGHT = window.innerHeight;
   const GRID_COLOR = 'rgb(206, 206, 206)';
   const collabCanvas = document.getElementById( 'collab_canvas' );
+  const clearButton = document.getElementById( 'clear_button' );
   const collabCtx = collabCanvas.getContext( '2d' );
   let socket = null;
   const mouseStatus = {
@@ -45,6 +46,7 @@ const app = ( function () {
 
   const drawGrid = ( context ) => {
     const canvasContext = context;
+    canvasContext.lineWidth = 1;
     for ( let x = 0.5; x < WIDTH; x += 25 ) {
       context.moveTo( x, 0 );
       context.lineTo( x, HEIGHT );
@@ -55,6 +57,13 @@ const app = ( function () {
     }
     canvasContext.strokeStyle = GRID_COLOR;
     canvasContext.stroke();
+  };
+
+  const clear = ( canvas, context ) => {
+    context.beginPath();
+    context.clearRect( 0, 0, collabCanvas.width, collabCanvas.height );
+    context.closePath();
+    drawGrid( context );
   };
 
   const setOptionTextColors = () => {
@@ -78,6 +87,7 @@ const app = ( function () {
       const msgLookup = {
         line: () => drawLine( dataMsg.data, collabCtx ),
         grid: () => drawGrid( collabCtx ),
+        clear: () => clear( collabCanvas, collabCtx ),
       };
       const fn = msgLookup[dataMsg.type];
       if ( fn ) fn();
@@ -103,11 +113,13 @@ const app = ( function () {
         const lineWidthSelect = document.getElementById( 'width_select' );
         const lineWidth = lineWidthSelect.options[lineWidthSelect.selectedIndex].value;
         sendData( JSON.stringify( {
-          normalizedX, normalizedY, lineWidth, strokeStyle,
+          type: 'line',
+          data: {
+            normalizedX, normalizedY, lineWidth, strokeStyle,
+          },
         } ) );
       }
     } );
-
 
     collabCanvas.addEventListener( 'mousedown', ( ) => {
       mouseStatus.down = true;
@@ -115,7 +127,11 @@ const app = ( function () {
 
     collabCanvas.addEventListener( 'mouseup', ( ) => {
       mouseStatus.down = false;
-      sendData( JSON.stringify( { completed: true } ) );
+      sendData( JSON.stringify( { type: 'line', data: 'completed' } ) );
+    } );
+
+    clearButton.addEventListener( 'click', () => {
+      sendData( JSON.stringify( { type: 'clear' } ) );
     } );
   };
 

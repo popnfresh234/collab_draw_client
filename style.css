@@ -11,9 +11,8 @@ canvas {
     z-index: 1;
 }
 
-.controls select {
-    width: 100%;
-    display: block;
+button, select {
+    height: 25px;
 }
 
 select option {
