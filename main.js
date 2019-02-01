@@ -127,7 +127,7 @@ const app = ( function () {
 
     collabCanvas.addEventListener( 'mouseup', ( ) => {
       mouseStatus.down = false;
-      sendData( JSON.stringify( { type: 'line', data: 'completed' } ) );
+      sendData( JSON.stringify( { type: 'completed' } ) );
     } );
 
     clearButton.addEventListener( 'click', () => {
