@@ -2,5 +2,20 @@ canvas {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
+}
+
+.controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+}
+
+.controls select {
+    width: 100%;
+    display: block;
+}
+
+select option {
+    background: rgb(137, 137, 137);
 }

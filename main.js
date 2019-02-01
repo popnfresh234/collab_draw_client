@@ -10,6 +10,18 @@ const app = ( function () {
     down: false,
   };
 
+  const COLORS = {
+    black: 'rgb(0, 0, 0)',
+    white: 'rgb(255, 255, 255)',
+    red: 'rgb(255, 0, 0)',
+    orange: 'rgb(255, 127, 0)',
+    yellow: 'rgb(255, 255, 0)',
+    green: 'rgb(0,255,0)',
+    blue: 'rgb( 0,0,255)',
+    indigo: 'rgb(75,0,130)',
+    violet: 'rgb(139,0,255)',
+  };
+
   const drawLine = ( pointsArray, context ) => {
     const ctx = context;
     ctx.beginPath();
@@ -45,7 +57,19 @@ const app = ( function () {
     canvasContext.stroke();
   };
 
+  const setOptionTextColors = () => {
+    const options = document.getElementsByTagName( 'option' );
+    for ( let i = 0; i < options.length; i += 1 ) {
+      const option = options[i];
+      const color = COLORS[option.value];
+      if ( color ) {
+        option.style.color = color;
+      }
+    }
+  };
+
   const setup = () => {
+    setOptionTextColors();
     collabCanvas.width = WIDTH;
     collabCanvas.height = HEIGHT;
     socket = new WebSocket( WS_ADDRESS );
@@ -72,8 +96,14 @@ const app = ( function () {
       if ( mouseStatus.down ) {
         const normalizedX = e.clientX / WIDTH;
         const normalizedY = e.clientY / HEIGHT;
+        // Get the color from the color select element
+        const colorSelect = document.getElementById( 'colors' );
+        const strokeStyle = colorSelect.options[colorSelect.selectedIndex].value;
+        // Get the line width from the line width select element
+        const lineWidthSelect = document.getElementById( 'width_select' );
+        const lineWidth = lineWidthSelect.options[lineWidthSelect.selectedIndex].value;
         sendData( JSON.stringify( {
-          normalizedX, normalizedY, lineWidth: 10, strokeStyle: 'red',
+          normalizedX, normalizedY, lineWidth, strokeStyle,
         } ) );
       }
     } );
